@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>AstroBoy — 90s</title>
+<meta name="description" content="" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕹️</text></svg>">
+<style>
+  :root{
+    --bgdark:#090d14; --ink:#0e1624; --text:#e6edf7; --muted:#9aa7bc;
+    --p1:#6cf; --p2:#f78; --p3:#ffe36e; --b:4px; --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bgdark);color:var(--text);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overscroll-behavior:none; -webkit-tap-highlight-color:transparent}
+  a{color:inherit;text-decoration:none}
+
+  /* ===== VIDEO BACKGROUND (lebih gelap) ===== */
+  #bgvid{
+    position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;
+    filter:brightness(0.6) contrast(1.05) saturate(0.9);
+  }
+  #shade{position:fixed; inset:0; z-index:1; background:rgba(0,0,0,.30)}
+  .scan{position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
+    mix-blend-mode:soft-light;}
+
+  /* ===== NAVBAR pixel modern ===== */
+  header{position:fixed; inset:0 0 auto 0; height:72px; display:grid; place-items:center; z-index:5}
+  .nav{
+    width:min(1200px,96%); height:56px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:linear-gradient(180deg, #0f1a2c, #0b1322);
+    border:var(--b) solid #1a2942; box-shadow:inset var(--b) var(--b) #070c16, var(--shadow);
+    padding:0 10px;
+  }
+  .brand{display:flex; align-items:center; gap:10px}
+  .px-badge{width:40px;height:40px;display:grid;place-items:center;color:#06111d;font-weight:900;
+    background:linear-gradient(180deg, var(--p1), var(--p3)); border:var(--b) solid #20314d;
+    box-shadow:inset var(--b) var(--b) #6cf2, 0 6px 16px rgba(0,0,0,.25);}
+  .brand span{font-weight:900; letter-spacing:.4px}
+  .menu{display:flex; align-items:center; gap:8px}
+  .btn{
+    height:40px; padding:0 14px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
+    background:#0b1322; color:var(--text); border:var(--b) solid #1a2942; box-shadow:inset var(--b) var(--b) #070c16, var(--shadow);
+    transition:transform .06s ease;
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{
+    background:linear-gradient(180deg, var(--p1), var(--p2)); color:#06111d; border-color:#20314d;
+    box-shadow:inset var(--b) var(--b) #ffffff55, var(--shadow); font-weight:900;
+  }
+
+  /* ===== HUD ===== */
+  .hud{position:fixed; left:12px; top:86px; z-index:4; display:flex; gap:8px; flex-wrap:wrap}
+  .tag{background:#0b1322; border:var(--b) solid #1a2942; padding:8px 12px; font-weight:900;
+    box-shadow:inset var(--b) var(--b) #070c16, var(--shadow)}
+
+  /* ===== CANVAS ===== */
+  #stage{position:fixed; inset:72px 0 64px 0; z-index:3}
+  canvas{width:100%; height:100%; display:block; image-rendering: pixelated;}
+
+  /* ===== OVERLAY ===== */
+  .overlay{position:fixed; inset:72px 0 64px 0; display:none; place-items:center; z-index:4}
+  .card{
+    width:min(520px,92%); text-align:center; color:var(--text);
+    background:#0b1322; border:var(--b) solid #1a2942; box-shadow:inset var(--b) var(--b) #070c16, var(--shadow);
+    padding:18px;
+  }
+  .row{display:flex; justify-content:center; gap:8px; margin-top:10px}
+  .muted{color:var(--muted)}
+
+  /* ===== MOBILE THRUST BUTTON (Android/iOS) ===== */
+  .mobile-ctr{
+    position:fixed; right:12px; bottom:12px; z-index:4; display:none;
+  }
+  .ctr-btn{
+    width:90px; height:90px; border:var(--b) solid #1a2942; background:linear-gradient(180deg, var(--p3), var(--p2));
+    color:#06111d; font-weight:900; display:grid; place-items:center; box-shadow:inset var(--b) var(--b) #ffffff55, var(--shadow);
+  }
+  @media (pointer:coarse){
+    .mobile-ctr{display:block}
+  }
+
+  footer{
+    position:fixed; inset:auto 0 0 0; height:64px; display:grid; place-items:center; z-index:2;
+    background:#0b1322; border-top:var(--b) solid #1a2942; color:#aab7d1; font-size:12px;
+  }
+</style>
+</head>
+<body>
+  <!-- VIDEO BACKGROUND -->
+  <video id="bgvid" autoplay muted loop playsinline>
+    <source src="bg.mp4" type="video/mp4">
+  </video>
+  <div id="shade"></div>
+  <div class="scan"></div>
+
+  <!-- NAVBAR -->
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <div class="px-badge">🕹️</div>
+        <span>AstroBoy Coin</span>
+      </div>
+      <div class="menu">
+        <a id="xBtn" class="btn" href="#" target="_blank" rel="noopener">𝕏 Community</a>
+        <button id="pauseBtn" class="btn">⏯ Pause</button>
+        <button id="muteBtn" class="btn">🔊 Sound</button>
+        <a id="buyBtn" class="btn primary" href="#" target="_blank" rel="noopener">Buy / Trade</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HUD + CANVAS -->
+  <div class="hud">
+    <div class="tag" id="scoreTag">Score: 0</div>
+    <div class="tag" id="highTag">High: 0</div>
+  </div>
+  <div id="stage"><canvas id="game" width="900" height="540" aria-label="Game canvas"></canvas></div>
+
+  <!-- OVERLAY -->
+  <div id="overlay" class="overlay">
+    <div class="card">
+      <h2 id="ovTitle" style="margin:0 0 6px">PRESS START</h2>
+      <div id="ovDesc" class="muted">Tahan <b>SPACE</b> / tap & tahan untuk naik. Lepas untuk turun. Hindari meteor!</div>
+      <div class="row">
+        <button id="startBtn" class="btn primary">Start ▶</button>
+        <button id="restartBtn" class="btn" style="display:none">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE THRUST BTN -->
+  <div class="mobile-ctr">
+    <div id="thruster" class="ctr-btn" aria-label="Thrust">THRUST</div>
+  </div>
+
+  <footer>Retro Pixel Theme • Fan-made • NFA</footer>
+
+<script>
+// =================== KONFIG & TOKEN ===================
+const TOKEN = {
+  TRADE_URL: "#",
+  X_URL: "#"
+};
+
+const CHAR_SRC   = "astro.png";   // karakter
+const METEOR_SRC = "meteor.png";  // meteor
+// bg.mp4 sudah di <video>
+
+// ====== Perbaiki autoplay loop Android/iOS ======
+const bg = document.getElementById('bgvid');
+function tryPlay(){ bg.play().catch(()=>{}); }
+document.addEventListener('pointerdown', tryPlay, {once:true});
+document.addEventListener('keydown', tryPlay, {once:true});
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) tryPlay(); });
+
+// Link menu
+const xBtn = document.getElementById('xBtn');
+xBtn.href = (TOKEN.X_URL && !/^(#|$)/.test(TOKEN.X_URL)) ? TOKEN.X_URL : "#";
+document.getElementById('buyBtn').href = (TOKEN.TRADE_URL && !/^(#|$)/.test(TOKEN.TRADE_URL)) ? TOKEN.TRADE_URL : "#";
+
+// =================== AUDIO ===================
+const SFX = (()=>{ let ctx=null, muted=false;
+  const ensure=()=>{ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); };
+  const bip=(type,freq,dur,gain)=>{
+    if(muted) return; ensure();
+    const t=ctx.currentTime, o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.value=gain;
+    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+dur);
+  };
+  return { thrust:()=>bip("square",760,.05,.05), hit:()=>bip("square",120,.12,.07),
+           toggle:()=>muted=!muted, isMuted:()=>muted,
+           resume:()=>{ if(ctx && ctx.state==="suspended") ctx.resume(); } };
+})();
+
+// =================== GAME (FLY MODE) ===================
+const $=s=>document.querySelector(s);
+const canvas=$("#game"), ctx=canvas.getContext("2d", {alpha:true});
+ctx.imageSmoothingEnabled = false; // retro pixel look
+
+const pauseBtn=$("#pauseBtn"), muteBtn=$("#muteBtn");
+const overlay=$("#overlay"), ovTitle=$("#ovTitle"), ovDesc=$("#ovDesc");
+const startBtn=$("#startBtn"), restartBtn=$("#restartBtn");
+const scoreTag=$("#scoreTag"), highTag=$("#highTag");
+const thrustBtn=$("#thruster");
+
+const playerImg=new Image(); playerImg.src=CHAR_SRC;
+const meteorImg=new Image(); meteorImg.src=METEOR_SRC;
+
+const WORLD={ w:900,h:540, gravity:1400, thrust:1750, baseSpeed:315, speed:315,
+  time:0, score:0, high:Number(localStorage.getItem("aboy_highscore")||0)||0,
+  state:"ready", lastSpawn:0, nextSpawn:1.1 };
+
+const player={ x:160, y:0, w:148, h:148, vy:0, thrusting:false, idleT:0 };
+const MAX=20, meteors=Array.from({length:MAX},()=>({x:-1,y:0,w:96,h:96,active:false}));
+
+// Partikel trail
+const PMAX = 80, particles = new Array(PMAX).fill(0).map(()=>({x:0,y:0,vx:0,vy:0,a:0,life:0,active:false}));
+function spawnParticle(px,py){
+  const p=particles.find(p=>!p.active); if(!p) return;
+  p.x=px; p.y=py;
+  p.vx = -80 - Math.random()*60;
+  p.vy = (Math.random()*2-1)*30;
+  p.a = 1;
+  p.life = .5 + Math.random()*.3;
+  p.active=true;
+}
+
+// Resize
+function fit(){
+  const r=$("#stage").getBoundingClientRect();
+  const dpr=Math.min(window.devicePixelRatio||1, 2);
+  canvas.width=Math.max(1,Math.floor(r.width*dpr));
+  canvas.height=Math.max(1,Math.floor(r.height*dpr));
+  WORLD.w=canvas.width; WORLD.h=canvas.height;
+}
+new ResizeObserver(fit).observe($("#stage")); window.addEventListener("orientationchange",()=>setTimeout(fit,200)); fit();
+
+// State helpers
+function setState(s){
+  WORLD.state=s;
+  overlay.style.display=(s==="playing")?"none":"grid";
+  startBtn.style.display=(s==="ready")?"inline-flex":"none";
+  restartBtn.style.display=(s==="over")?"inline-flex":"none";
+  if(s==="ready"){ ovTitle.textContent="PRESS START"; ovDesc.innerHTML="Tahan <b>SPACE</b> / tap & tahan untuk naik. Lepas untuk turun. Hindari meteor!"; }
+  if(s==="over"){ ovTitle.textContent="GAME OVER"; ovDesc.innerHTML=`Skor: <b>${Math.floor(WORLD.score)}</b> • High: <b>${WORLD.high}</b>`; }
+  updateHUD();
+}
+function updateHUD(){
+  scoreTag.textContent=`Score: ${Math.floor(WORLD.score)}`;
+  highTag.textContent=`High: ${WORLD.high}`;
+  pauseBtn.textContent=(WORLD.state==="paused")?"▶ Resume":"⏯ Pause";
+  muteBtn.textContent=SFX.isMuted()?"🔇 Muted":"🔊 Sound";
+}
+function resetGame(){ WORLD.time=0; WORLD.score=0; WORLD.speed=WORLD.baseSpeed; WORLD.lastSpawn=0; WORLD.nextSpawn=.95+Math.random()*.6;
+  meteors.forEach(m=>m.active=false);
+  particles.forEach(p=>p.active=false);
+  player.y=WORLD.h*0.5-player.h/2; player.vy=0; player.thrusting=false; player.idleT=0;
+  setState("ready");
+}
+function startGame(){ WORLD.time=0; WORLD.score=0; WORLD.speed=WORLD.baseSpeed;
+  meteors.forEach(m=>m.active=false); particles.forEach(p=>p.active=false);
+  player.y=WORLD.h*0.5-player.h/2; player.vy=0; player.thrusting=false; player.idleT=0;
+  WORLD.lastSpawn=0; WORLD.nextSpawn=.95+Math.random()*.6; setState("playing"); SFX.resume();
+}
+function gameOver(){ SFX.hit(); const s=Math.floor(WORLD.score); if(s>WORLD.high){ WORLD.high=s; localStorage.setItem("aboy_highscore",WORLD.high); } setState("over"); }
+function pauseToggle(){ if(WORLD.state==="playing") WORLD.state="paused"; else if(WORLD.state==="paused") WORLD.state="playing"; updateHUD(); }
+
+// Input (hold to fly)
+function setThrust(v){ if(WORLD.state==="playing"){ player.thrusting=v; if(v) SFX.thrust(); } }
+window.addEventListener("keydown",e=>{
+  if(e.code==="Space"){ e.preventDefault(); if(WORLD.state==="ready"||WORLD.state==="over") startGame(); else setThrust(true);}
+  else if(e.code==="KeyP"){ pauseToggle(); }
+},{passive:false});
+window.addEventListener("keyup",e=>{ if(e.code==="Space") setThrust(false); });
+
+// Touch / Pointer
+canvas.addEventListener("pointerdown",e=>{ e.preventDefault(); if(WORLD.state==="ready"||WORLD.state==="over") startGame(); else setThrust(true); }, {passive:false});
+window.addEventListener("pointerup",()=>setThrust(false));
+["touchstart","touchmove","touchend","touchcancel"].forEach(ev=>canvas.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+
+// Mobile on-screen thrust
+thrustBtn.addEventListener("pointerdown",e=>{ e.preventDefault(); if(WORLD.state==="ready"||WORLD.state==="over") startGame(); setThrust(true); }, {passive:false});
+thrustBtn.addEventListener("pointerup",()=>setThrust(false));
+
+// Buttons
+startBtn.addEventListener("click", startGame); restartBtn.addEventListener("click", startGame);
+pauseBtn.addEventListener("click", pauseToggle);
+muteBtn.addEventListener("click", ()=>{ SFX.toggle(); updateHUD(); });
+
+// Draw helpers
+function drawPlayer(){
+  // Tilt sesuai kecepatan (lebih natural)
+  const angle = Math.max(-0.35, Math.min(0.35, -player.vy * 0.0006));
+  const cx = player.x + player.w/2, cy = player.y + player.h/2;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+
+  // Thrust flame (segitiga pixel) + spawn particle
+  if(player.thrusting){
+    const fx = -player.w*0.45, fy = player.h*0.22;
+    ctx.fillStyle = "#ffd966";
+    ctx.beginPath();
+    ctx.moveTo(fx,  0);
+    ctx.lineTo(fx-24 - Math.random()*8,  8 + Math.random()*6);
+    ctx.lineTo(fx-24 - Math.random()*8, -8 - Math.random()*6);
+    ctx.closePath(); ctx.fill();
+
+    // Partikel trail
+    const worldX = cx + fx - 10, worldY = cy + (Math.random()*16-8);
+    spawnParticle(worldX, worldY);
+  }
+
+  // Sprite
+  if(playerImg.complete && playerImg.naturalWidth) ctx.drawImage(playerImg, -player.w/2, -player.h/2, player.w, player.h);
+  else { ctx.fillStyle="#6cf"; ctx.fillRect(-player.w/2, -player.h/2, player.w, player.h); }
+
+  ctx.restore();
+}
+function drawMeteor(m){
+  if(meteorImg.complete && meteorImg.naturalWidth) ctx.drawImage(meteorImg, m.x, m.y, m.w, m.h);
+  else { ctx.fillStyle="#f78"; ctx.fillRect(m.x, m.y, m.w, m.h); }
+}
+function drawParticles(dt){
+  for(const p of particles){
+    if(!p.active) continue;
+    p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; p.a = Math.max(0, p.life*1.8);
+    if(p.life<=0){ p.active=false; continue; }
+    ctx.globalAlpha = p.a; ctx.fillStyle="#ffd966";
+    ctx.fillRect(p.x, p.y, 6, 6);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// Loop
+let last=performance.now();
+function loop(now){
+  const dt=Math.min((now-last)/1000,.033); last=now;
+
+  // Transparan (video tampak)
+  ctx.clearRect(0,0,WORLD.w,WORLD.h);
+
+  if(WORLD.state==="playing"){
+    WORLD.time+=dt; WORLD.score+=dt*10; WORLD.speed=WORLD.baseSpeed + Math.min(260, WORLD.time*10);
+
+    if(player.thrusting) player.vy -= WORLD.thrust*dt;
+    player.vy += WORLD.gravity*dt*0.8; player.y += player.vy*dt;
+
+    if(player.y<8){player.y=8; player.vy=0;}
+    if(player.y+player.h>WORLD.h-8){player.y=WORLD.h-8-player.h; player.vy=0;}
+
+    WORLD.lastSpawn += dt;
+    if(WORLD.lastSpawn >= WORLD.nextSpawn){
+      const m = meteors.find(x=>!x.active);
+      if(m){
+        const s = 84 + Math.floor(Math.random()*84);
+        m.w=s; m.h=s; m.x = WORLD.w + s;
+        m.y = 24 + Math.random()*(WORLD.h - 48 - s);
+        m.active = true;
+      }
+      WORLD.lastSpawn=0; WORLD.nextSpawn = 0.85 + Math.random()*0.65;
+    }
+
+    // Move + collide
+    const ax=player.x+12, ay=player.y+12, aw=player.w-24, ah=player.h-24;
+    for(const m of meteors){
+      if(!m.active) continue;
+      m.x -= WORLD.speed * dt;
+      if(m.x < -m.w-24){ m.active=false; continue; }
+      const bx=m.x+8, by=m.y+8, bw=m.w-16, bh=m.h-16;
+      if(ax < bx+bw && ax+aw > bx && ay < by+bh && ay+ah > by){ gameOver(); break; }
+    }
+  } else if(WORLD.state==="ready"){
+    // Idle bobbing biar tidak kaku
+    player.idleT += dt*3;
+    const base = WORLD.h*0.5 - player.h/2;
+    player.y = base + Math.sin(player.idleT)*10;
+  }
+
+  // Render
+  meteors.forEach(m=>{ if(m.active) drawMeteor(m); });
+  drawParticles(dt);
+  drawPlayer();
+
+  // HUD
+  scoreTag.textContent = `Score: ${Math.floor(WORLD.score)}`;
+  highTag.textContent  = `High: ${WORLD.high}`;
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+resetGame();
+</script>
+</body>
+</html>
