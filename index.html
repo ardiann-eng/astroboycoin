@@ -15,6 +15,25 @@
   html,body{height:100%;margin:0;background:var(--bgdark);color:var(--text);
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overscroll-behavior:none; -webkit-tap-highlight-color:transparent}
   a{color:inherit;text-decoration:none}
+  .hamburger {
+    display: none; width: 44px; height: 44px; background: none; border: none; cursor: pointer; align-items: center; justify-content: center;
+  }
+  .hamburger span, .hamburger span:before, .hamburger span:after {
+    display: block; background: #e6edf7; height: 4px; border-radius: 2px; position: absolute; width: 28px; transition: .3s cubic-bezier(.4,0,.2,1);
+  }
+  .hamburger span { position: relative; }
+  .hamburger span:before { content: ""; top: -10px; }
+  .hamburger span:after { content: ""; top: 10px; }
+  .hamburger.active span { background: transparent; }
+  .hamburger.active span:before { top: 0; transform: rotate(45deg); }
+  .hamburger.active span:after { top: 0; transform: rotate(-45deg); }
+  @media (max-width: 800px), (pointer:coarse) {
+    .nav { flex-direction: row; height: 48px; }
+    .menu { position: fixed; top: 56px; right: 0; background: #0b1322ee; flex-direction: column; align-items: flex-end; gap: 0; width: 220px; box-shadow: var(--shadow); border-radius: 0 0 0 16px; transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1); z-index: 10; }
+    .menu.open { transform: translateX(0); }
+    .menu .btn { width: 100%; justify-content: flex-start; border-radius: 0; border: none; }
+    .hamburger { display: flex; position: relative; z-index: 11; margin-left: auto; }
+  }
 
   /* ===== VIDEO BACKGROUND (lebih gelap) ===== */
   #bgvid{
@@ -50,7 +69,18 @@
     background:linear-gradient(180deg, var(--p1), var(--p2)); color:#06111d; border-color:#20314d;
     box-shadow:inset var(--b) var(--b) #ffffff55, var(--shadow); font-weight:900;
   }
-
+@media (max-width: 600px), (pointer:coarse) {
+    .hud { left: 4px; top: 74px; gap: 4px; }
+    .btn, .btn.primary { height: 36px; font-size: 15px; padding: 0 10px; }
+    .nav { height: 44px; }
+    header { height: 56px; }
+    .role-wrap { grid-template-columns:1fr; gap:8px; }
+    .role-card { padding: 10px; font-size: 15px; }
+    .mobile-ctr { right: 4px; bottom: 4px; }
+    .ctr-btn { width: 64px; height: 64px; font-size: 16px; }
+    #stage, .overlay, .role-panel { inset: 56px 0 48px 0; }
+    footer { height: 48px; font-size: 11px; }
+  }
   /* ===== HUD ===== */
   .hud{position:fixed; left:12px; top:86px; z-index:4; display:flex; gap:8px; flex-wrap:wrap}
   .tag{background:#0b1322; border:var(--b) solid #1a2942; padding:8px 12px; font-weight:900;
@@ -59,7 +89,13 @@
   /* ===== CANVAS ===== */
   #stage{position:fixed; inset:72px 0 64px 0; z-index:3}
   canvas{width:100%; height:100%; display:block; image-rendering: pixelated;}
+.muted{color:var(--muted)}
 
+  /* ===== ROLE PANEL ===== */
+  .role-panel{ position:fixed; inset:72px 0 64px 0; z-index:4; display:none; overflow:auto; }
+  .role-wrap{ width:min(1200px,96%); margin:20px auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+  .role-card{ background:#0b1322; border:var(--b) solid #1a2942; box-shadow:inset var(--b) var(--b) #070c16, var(--shadow); padding:16px; }
+  .role-card h3{ margin:0 0 8px; }
   /* ===== OVERLAY ===== */
   .overlay{position:fixed; inset:72px 0 64px 0; display:none; place-items:center; z-index:4}
   .card{
@@ -103,12 +139,14 @@
         <div class="px-badge">🕹️</div>
         <span>AstroBoy Coin</span>
       </div>
-      <div class="menu">
+      <div class="menu" id="menu">
         <a id="xBtn" class="btn" href="#" target="_blank" rel="noopener">𝕏 Community</a>
         <button id="pauseBtn" class="btn">⏯ Pause</button>
         <button id="muteBtn" class="btn">🔊 Sound</button>
+        <button id="roleBtn" class="btn">📰 Role</button>
         <a id="buyBtn" class="btn primary" href="#" target="_blank" rel="noopener">Buy / Trade</a>
       </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span></button>
     </div>
   </header>
 
@@ -131,12 +169,28 @@
     </div>
   </div>
 
+  <!-- ROLE PANEL -->
+  <div id="rolePanel" class="role-panel" aria-label="AstroBoy Articles">
+    <div class="role-wrap">
+      <div class="role-card">
+        <h3>Who's AstroBoy?</h3>
+        <p class="muted">Astro Boy, known as Tetsuwan Atomu in Japan, first appeared as a manga in 1952 and quickly grew into a global cultural icon—a childlike robot endowed with human emotions who raised questions about robot rights, identity, and the ethics of artificial intelligence, making him not only a beloved character of his time but also a lasting symbol in today’s debates about the role of AI in society.</p>
+      </div>
+      <div class="role-card">
+        <h3>How is AstroBoy an AI?</h3>
+        <p class="muted">Astro Boy is presented as a symbol of a positive future for artificial intelligence (AI). The video contrasts this with the more menacing "Terminator" archetype, suggesting that AI could be seen as "helpful colleagues" instead of "robot overlords</p>
+    </div>
+    <div style="position:fixed; right:12px; top:84px;">
+      <button id="roleClose" class="btn">✖ Close</button>
+    </div>
+  </div>
+
   <!-- MOBILE THRUST BTN -->
   <div class="mobile-ctr">
     <div id="thruster" class="ctr-btn" aria-label="Thrust">THRUST</div>
   </div>
 
-  <footer>Retro Pixel Theme • Fan-made • NFA</footer>
+  <footer>R AstroBoy Coin (ABOY) is a community-driven meme token inspired by the spirit of retro robot heroes.  </footer>
 
 <script>
 // =================== KONFIG & TOKEN ===================
@@ -156,6 +210,20 @@ document.addEventListener('pointerdown', tryPlay, {once:true});
 document.addEventListener('keydown', tryPlay, {once:true});
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) tryPlay(); });
 
+const hamburger = document.getElementById("hamburger");
+const menu = document.getElementById("menu");
+
+hamburger.addEventListener("click", function() {
+  hamburger.classList.toggle("active");
+  menu.classList.toggle("open");
+});
+// Tutup menu saat klik di luar menu pada mobile
+window.addEventListener("click", function(e) {
+  if (window.innerWidth <= 800 && menu.classList.contains("open") && !menu.contains(e.target) && !hamburger.contains(e.target)) {
+    menu.classList.remove("open");
+    hamburger.classList.remove("active");
+  }
+});
 // Link menu
 const xBtn = document.getElementById('xBtn');
 xBtn.href = (TOKEN.X_URL && !/^(#|$)/.test(TOKEN.X_URL)) ? TOKEN.X_URL : "#";
@@ -186,6 +254,17 @@ const startBtn=$("#startBtn"), restartBtn=$("#restartBtn");
 const scoreTag=$("#scoreTag"), highTag=$("#highTag");
 const thrustBtn=$("#thruster");
 
+const roleBtn=$("#roleBtn"), rolePanel=$("#rolePanel"), roleClose=$("#roleClose");
+
+function toggleRole(open){
+  const show = (open===undefined) ? (rolePanel.style.display!=="block") : open;
+  if(show){
+    if(WORLD.state==="playing") pauseToggle();
+    rolePanel.style.display="block";
+  }else{
+    rolePanel.style.display="none";
+  }
+}
 const playerImg=new Image(); playerImg.src=CHAR_SRC;
 const meteorImg=new Image(); meteorImg.src=METEOR_SRC;
 
@@ -193,11 +272,16 @@ const WORLD={ w:900,h:540, gravity:1400, thrust:1750, baseSpeed:315, speed:315,
   time:0, score:0, high:Number(localStorage.getItem("aboy_highscore")||0)||0,
   state:"ready", lastSpawn:0, nextSpawn:1.1 };
 
+const HITBOX = {
+  player: { offsetX: 22, offsetY: 18, width: 104, height: 112 }, // contoh: sesuaikan dengan tubuh AstroBoy
+  meteor: { offsetX: 10, offsetY: 10, width: 76, height: 76 }    // contoh: sesuaikan dengan area meteor
+};
+
 const player={ x:160, y:0, w:148, h:148, vy:0, thrusting:false, idleT:0 };
 const MAX=20, meteors=Array.from({length:MAX},()=>({x:-1,y:0,w:96,h:96,active:false}));
 
 // Partikel trail
-const PMAX = 80, particles = new Array(PMAX).fill(0).map(()=>({x:0,y:0,vx:0,vy:0,a:0,life:0,active:false}));
+const PMAX = 40, particles = new Array(PMAX).fill(0).map(()=>({x:0,y:0,vx:0,vy:0,a:0,life:0,active:false}));
 function spawnParticle(px,py){
   const p=particles.find(p=>!p.active); if(!p) return;
   p.x=px; p.y=py;
@@ -224,8 +308,8 @@ function setState(s){
   overlay.style.display=(s==="playing")?"none":"grid";
   startBtn.style.display=(s==="ready")?"inline-flex":"none";
   restartBtn.style.display=(s==="over")?"inline-flex":"none";
-  if(s==="ready"){ ovTitle.textContent="PRESS START"; ovDesc.innerHTML="Tahan <b>SPACE</b> / tap & tahan untuk naik. Lepas untuk turun. Hindari meteor!"; }
-  if(s==="over"){ ovTitle.textContent="GAME OVER"; ovDesc.innerHTML=`Skor: <b>${Math.floor(WORLD.score)}</b> • High: <b>${WORLD.high}</b>`; }
+  if(s==="ready"){ ovTitle.textContent="PRESS START"; ovDesc.innerHTML="Tap & hold to fly. Release to descend. Avoid meteors!"; }
+  if(s==="over"){ ovTitle.textContent="GAME OVER"; ovDesc.innerHTML=`Score: <b>${Math.floor(WORLD.score)}</b> • High: <b>${WORLD.high}</b>`; }
   updateHUD();
 }
 function updateHUD(){
@@ -257,7 +341,7 @@ window.addEventListener("keydown",e=>{
 window.addEventListener("keyup",e=>{ if(e.code==="Space") setThrust(false); });
 
 // Touch / Pointer
-canvas.addEventListener("pointerdown",e=>{ e.preventDefault(); if(WORLD.state==="ready"||WORLD.state==="over") startGame(); else setThrust(true); }, {passive:false});
+canvas.addEventListener("pointerdown",e=>{ e.preventDefault(); if(WORLD.state==="ready"||WORLD.state==="over") startGame(); setThrust(true); }, {passive:false});
 window.addEventListener("pointerup",()=>setThrust(false));
 ["touchstart","touchmove","touchend","touchcancel"].forEach(ev=>canvas.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
 
@@ -270,6 +354,8 @@ startBtn.addEventListener("click", startGame); restartBtn.addEventListener("clic
 pauseBtn.addEventListener("click", pauseToggle);
 muteBtn.addEventListener("click", ()=>{ SFX.toggle(); updateHUD(); });
 
+roleBtn.addEventListener("click", ()=>toggleRole());
+roleClose.addEventListener("click", ()=>toggleRole(false));
 // Draw helpers
 function drawPlayer(){
   // Tilt sesuai kecepatan (lebih natural)
@@ -346,12 +432,19 @@ function loop(now){
     }
 
     // Move + collide
-    const ax=player.x+12, ay=player.y+12, aw=player.w-24, ah=player.h-24;
+    const ax = player.x + HITBOX.player.offsetX;
+    const ay = player.y + HITBOX.player.offsetY;
+    const aw = HITBOX.player.width;
+    const ah = HITBOX.player.height;
+
     for(const m of meteors){
       if(!m.active) continue;
       m.x -= WORLD.speed * dt;
       if(m.x < -m.w-24){ m.active=false; continue; }
-      const bx=m.x+8, by=m.y+8, bw=m.w-16, bh=m.h-16;
+      const bx = m.x + HITBOX.meteor.offsetX;
+      const by = m.y + HITBOX.meteor.offsetY;
+      const bw = HITBOX.meteor.width;
+      const bh = HITBOX.meteor.height;
       if(ax < bx+bw && ax+aw > bx && ay < by+bh && ay+ah > by){ gameOver(); break; }
     }
   } else if(WORLD.state==="ready"){
